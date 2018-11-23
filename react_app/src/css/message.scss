@@ -1,0 +1,50 @@
+.message{
+  position:relative;
+  width:100%;
+  margin:3px 0 3px 0;
+  padding:0 10px 0 10px;
+
+  button, input{
+    text-align:center;
+    padding:5px;
+    font-size:1.2em;
+  }
+  .message-left{
+    border: 1px solid;
+    border-radius:8px 0 0 8px;
+    width:20%;
+  }
+
+  .message-middle{
+    position:relative;
+    border: 1px solid;
+    border-right:none !important;
+    border-left:none !important;
+    border-radius: 0;
+    width:70%;
+
+  }
+  .message-right{
+    border: 1px solid;
+    border-left:none !important;
+    border-radius:0 8px 8px 0;
+    width:10%;
+
+  }
+
+  .message-remaining-time{
+    height:3px;
+    background-color:darkred;
+    position:absolute;
+    bottom:-3px;
+    left:0;
+  }
+}
+
+.success{
+  button{
+    color:white;
+    background-color:rgba(25,100,25,0.8);
+    border-color: darkgreen !important;
+  }
+}

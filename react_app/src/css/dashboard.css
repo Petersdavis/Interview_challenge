@@ -1,0 +1,49 @@
+.dashboard {
+  position: absolute;
+  padding-top: 88px;
+  width: 100%;
+  height: 100vh;
+  background-size: cover; }
+  .dashboard .search-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 88px;
+    background-color: rgba(255, 255, 255, 0.8);
+    -webkit-clip-path: polygon(0% 0%, 0% 100%, 5% 100%, 5% 25%, 70% 25%, 70% 75%, 5% 75%, 5% 100%, 100% 100%, 100% 0%);
+    clip-path: polygon(0% 0%, 0% 100%, 5% 100%, 5% 25%, 70% 25%, 70% 75%, 5% 75%, 5% 100%, 100% 100%, 100% 0%); }
+    .dashboard .search-bar .logout-button {
+      border: none;
+      font-size: 2em;
+      position: absolute;
+      right: 22px;
+      top: 22px;
+      height: 44px;
+      width: 44px;
+      background: none; }
+  .dashboard .search {
+    color: #323232;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: none;
+    position: fixed;
+    top: 22px;
+    height: 44px;
+    left: 5%;
+    width: 65%;
+    padding: 5px;
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: bold; }
+  .dashboard .search::placeholder {
+    color: #323232; }
+  .dashboard .list-header {
+    width: 100%;
+    padding: 15px;
+    color: #323232;
+    background-color: rgba(255, 255, 255, 0.8);
+    font-size: 2em; }
+  .dashboard .chat-box {
+    position: absolute;
+    width: 100%;
+    bottom: 0; }
