@@ -21,6 +21,12 @@
 2. Database for coin prices
 3. Database for messages
 4. CoinMarketCap API
+    API Limit 30 / minute
+    Endpoints update every 5 minutes
+    We will set coin data for a chunk to be fresh for 15 minutes
+    If a visible or subscribed coin expires on a client machine the machine will request new data    
+    
+
 5. Google Sign-in 
 
 ####################################
