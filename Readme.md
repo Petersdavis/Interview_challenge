@@ -18,6 +18,45 @@
 ####################################
 
 1. Websockets
+    -Each Client Gets a Connection
+    -Messages are sent over the connection
+        {   
+            code:"0"
+            msg:"",
+            from:{
+                id:##
+                name:""
+            }
+        }
+    -Coins are sent over the connection if the user is subscribed
+        {
+            code:"1"
+            id:##
+            price:##
+            timestamp:###
+        } 
+    -New/Canceled subscriptions to coins are sent over the connection if the user is subscribed
+        {
+            code:"2"
+            id:##
+            name:""
+        }  
+        
+2.Rest API
+    User Access:
+    -Create User 
+    -Login
+    -Token Login
+    
+    Coins:
+    Get Coin ##-##
+    Get Coin Array [##, ##, ##]
+        
+    Message
+    Send Message
+    
+    
+    
 2. Database for coin prices
 3. Database for messages
 4. CoinMarketCap API
