@@ -7,45 +7,48 @@ services:
     ports:
       - "6379:6379"
 
-  goubiq_mysql:
-    container_name: goubiq_mysql
-    image: mysql:5
-    hostname: gingr_servicedb
-    volumes:
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: goubiq
-      MYSQL_USER: dbuser
-      MYSQL_PASSWORD: 123
-    ports:
-      - "5282:3306"
 
-  goubiq_php:
-    container_name: goubiq_php
-    build: ./php/
-    volumes:
-      - ./php/:/var/www/html/
-    ports:
-      - "8000:8000"
-      - "8080:8080"
+#  goubiq_mysql:
+#    container_name: goubiq_mysql
+#    image: mysql:5
+#    hostname: gingr_servicedb
+#    volumes:
+#      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+#    environment:
+#      MYSQL_ROOT_PASSWORD: root
+#      MYSQL_DATABASE: goubiq
+#      MYSQL_USER: dbuser
+#      MYSQL_PASSWORD: 123
+#    ports:
+#      - '5282:3306'
+#
+#  goubiq_php:
+#    container_name: goubiq_php
+#    build: ./php/
+#    volumes:
+#      - ./php/:/var/www/html/
+#    ports:
+#      - '8000:8000'
+#      - '8080:8080'
 
-  goubiq_python:
-    container_name: goubiq_python
-    build: ./python/
-    depends_on:
-      - goubiq_redis
-    entrypoint:
-      - python
-      - poll.py
-    volumes:
-     - ./python/:/mnt/src
+#  goubiq_python:
+#    container_name: goubiq_python
+#    build: ./python/
+#    depends_on:
+#      - goubiq_redis
+#    entrypoint:
+#      - python
+#      - poll.py
+#    volumes:
+#     - ./python/:/mnt/src
+
 
   goubiq_node:
       image: peter/node
       container_name: goubiq_node
       ports:
        - '8080:8080'
+       - '80:80'
       build: ./node/
       entrypoint: nodemon --watch ./ -e js,html  app.js
       volumes:

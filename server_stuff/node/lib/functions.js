@@ -1,33 +1,81 @@
 //from: https://blog.manifold.co/building-a-chat-room-in-30-minutes-using-redis-socket-io-and-express-9e8e5a578675
-
 "use strict";
-
+var passwordHash = require('password-hash');
 
 import { client } from "../lib/redis";
 
-export let lookupSocket = (io, id)=>{
+export let test = ()=>{
     return new Promise(
         (resolve,reject)=>{
-            client().then(
-                client=>{
-                    let socket_id = client.get("user." + id + ".socket");
-                    resolve(socket_id);
-                }
-            ).catch(
-                (err)=>{
-                    reject(err)
-                }
-            )
+          resolve(saveMessage({to_id:1, from_id:0, msg:"HELLO WORLD"}))
         }
     );
 }
+
+export let getMsgId = (id, client)=>{
+    return new Promise(
+        (resolve,reject)=>{
+           client.get("message."+id, (err, string)=>{
+               resolve(JSON.parse(string));
+           })
+        }
+    )
+
+}
+
+export let getMsgArray=(ids, client)=>{
+    return new Promise(
+        (resolve,reject)=>{
+            var promises = [];
+            ids.forEach(
+                (id)=>{
+                    promises.push(getMsgId(id, client))
+                }
+            )
+            Promise.all(promises).then(
+                (values)=>{
+                    resolve(values);
+                }
+            )
+        }
+    )
+}
+
 
 export let userLogin = (pwd, user_name)=>{
     return new Promise(
         (resolve,reject)=>{
             client().then(
                 client=>{
+                    client.get("user." + user_name, (err, id) =>{
+                        if(id === null){
+                            reject("USER_DNE")
+                        } else {
+                            client.get("user."+id+".password", (err, hash) => {
+                                // reply is null when the key is missing
+                                if(!passwordHash.verify(pwd, hash)){
+                                    reject("BAD_CRED");
+                                } else {
+                                    var user = {};
+                                    user.name = user_name;
+                                    user.id = id;
+                                    client.smembers("user."+id+".inbox", function(err, messages) {
+                                        // reply is null when the key is missing
+                                          getMsgArray(messages, client).then(
+                                            (messages)=>{
+                                                user.messages = messages;
 
+                                                client.smembers("user."+id+".subs", function(err, subs) {
+                                                    user.subs = subs;
+                                                    resolve(user);
+                                                })
+                                            }
+                                        );
+                                    });
+                                }
+                            });
+                        }
+                    })
                 }
             ).catch(
                 (err)=>{
@@ -44,7 +92,22 @@ export let userSignup = (pwd, user_name)=>{
         (resolve,reject)=>{
             client().then(
                 client=>{
+                    client.exists("user." + user_name, (err, exists) =>{
 
+                        if(exists){
+                            reject("USER_EXISTS")
+                        } else {
+                            client.incr("user_count", (err, reply) => {
+                                // reply is null when the key is missing
+                                let id = reply;
+                                let hash = passwordHash.generate(pwd);
+                                client.set("user." + user_name, id)
+                                client.set("user." + id + ".password", hash);
+                                resolve({name: user_name, id: id});
+
+                            });
+                        }
+                    })
                 }
             ).catch(
                 (err)=>{
@@ -54,12 +117,34 @@ export let userSignup = (pwd, user_name)=>{
         }
     );
 }
+export let getCoin = (id, client)=>{
+    return new Promise(
+        (resolve)=> {
+           client.get("coin." + id, (err, coin)=>{
+               resolve(coin);
+           })
+        }
+    )
+}
+
 export let getCoins = (from, to)=>{
     return new Promise(
         (resolve,reject)=>{
             client().then(
                 client=>{
-
+                    var promises = []
+                    for(;from <= to;++from){
+                      promises.push( getCoin(from, client))
+                    }
+                    Promise.all(promises).then(
+                        (values)=>{
+                            resolve(values)
+                        }
+                    ).catch(
+                        (err)=>{
+                            reject(err)
+                        }
+                    )
                 }
             ).catch(
                 (err)=>{
@@ -70,12 +155,12 @@ export let getCoins = (from, to)=>{
     );
 }
 
+/*** TODO: ***/
 export let searchCoin = (from, to)=>{
     return new Promise(
         (resolve,reject)=>{
             client().then(
                 client=>{
-
                 }
             ).catch(
                 (err)=>{
@@ -86,12 +171,18 @@ export let searchCoin = (from, to)=>{
     );
 }
 
-export let subscribeCoin = (coin_id) => {
+export let subscribeCoin = (user_id, coin_id) => {
     return new Promise((resolve, reject) => {
         client().then(
             res => {
-
-                resolve()
+                client.sadd("user."+user_id +".subs", coin_id, (err, result)=>{
+                    if(result==0){
+                        reject("Subscription Already Exists");
+                    } else {
+                        client.publish("coin."+coin_id+".subs", "ADD:" + user_id);
+                        resolve()
+                    }
+                })
             },
             err => {
                 reject("Redis connection failed: " + err);
@@ -100,13 +191,19 @@ export let subscribeCoin = (coin_id) => {
     });
 }
 
-export let unsubscribeCoin = (coin_id)=>{
+export let unsubscribeCoin = (user_id, coin_id)=>{
     return new Promise(
         (resolve,reject)=>{
             client().then(
                 client=>{
-
-                    resolve();
+                    client.srem("user."+user_id +".subs", coin_id, (err, result)=>{
+                        if(result==0){
+                            reject("Subscription Did Not Exists");
+                        } else {
+                            client.publish("coin."+coin_id+".subs", "RM:" + user_id);
+                            resolve()
+                        }
+                    })
                 }
             ).catch(
                 (err)=>{
@@ -123,9 +220,14 @@ export let saveMessage = (message)=>{
         (resolve,reject)=>{
             client().then(
              client=>{
-                 client.publish("user."+msg.to_id, msg.msg);
-                 client.lpush("user."+msg.to_id+".inbox", JSON.stringify(msg));
-                 resolve();
+                 client.incr("message_count", (err, id)=>{
+                     message.id = id;
+                     var message_string = JSON.stringify(message);
+                     client.set("message." + id, message_string )
+                     client.publish("user."+message.to_id, message_string);
+                     client.sadd("user."+message.to_id+".inbox", id);
+                     resolve();
+                 })
              }
             ).catch(
                 (err)=>{
@@ -140,144 +242,12 @@ export let deleteMessage = (message) => {
    return new Promise((resolve, reject)=>{
       client().then(
           client=>{
-              length = client.llen("user."+message.to_id+".inbox")
-              let msg = {};
-
-              for(let x = 0; x<length; ++x){
-                  msg = JSON.parse(client.lpop("user."+message.to_id+".inbox"))
-                  if(msg.id === message.id){
-                      resolve();
-                      break;
-                  } else {
-                      client.rpush(JSON.stringify(msg))
-                  }
-                  if(x===length){
-                      reject("message not found");
-                  }
-              }
+              client.srem("user." + message.to_id + ".inbox", message.id)
+              resolve();
           }
-      )
+      ).catch(err=>{
+          reject(err)
+      })
    })
 };
 
-
-
-
-export let fetchMessages = () => {
-    return new Promise((resolve, reject) => {
-        client().then(
-            res => {
-                res.lrangeAsync("messages", 0, -1).then(
-                    messages => {
-                        resolve(messages);
-                    },
-                    err => {
-                        reject(err);
-                    }
-                );
-            },
-            err => {
-                reject("Redis connection failed: " + err);
-            }
-        );
-    });
-};
-
-export let addMessage = message => {
-    return new Promise((resolve, reject) => {
-        client().then(
-            res => {
-                res
-                    .multi()
-                    .rpush("messages", message)
-                    .execAsync()
-                    .then(
-                        res => {
-                            resolve(res);
-                        },
-                        err => {
-                            reject(err);
-                        }
-                    );
-            },
-            err => {
-                reject("Redis connection failed: " + err);
-            }
-        );
-    });
-};
-
-export let fetchActiveUsers = () => {
-    return new Promise((resolve, reject) => {
-        client().then(
-            res => {
-                res.smembersAsync("users").then(
-                    users => {
-                        resolve(users);
-                    },
-                    err => {
-                        reject(err);
-                    }
-                );
-            },
-            err => {
-                reject("Redis connection failed: " + err);
-            }
-        );
-    });
-};
-
-export let addActiveUser = user => {
-    return new Promise((resolve, reject) => {
-        client().then(
-            res => {
-                res
-                    .multi()
-                    .sadd("users", user)
-                    .execAsync()
-                    .then(
-                        res => {
-                            if (res[0] === 1) {
-                                resolve("User added");
-                            }
-
-                            reject("User already in list");
-                        },
-                        err => {
-                            reject(err);
-                        }
-                    );
-            },
-            err => {
-                reject("Redis connection failed: " + err);
-            }
-        );
-    });
-};
-
-export let removeActiveUser = user => {
-    return new Promise((resolve, reject) => {
-        client().then(
-            res => {
-                res
-                    .multi()
-                    .srem("users", user)
-                    .execAsync()
-                    .then(
-                        res => {
-                            if (res === 1) {
-                                resolve("User removed");
-                            }
-                            reject("User is not in list");
-                        },
-                        err => {
-                            reject(err);
-                        }
-                    );
-            },
-            err => {
-                reject("Redis connection failed: " + err);
-            }
-        );
-    });
-};

@@ -5,31 +5,55 @@ import express from "express";
 import { client } from "./lib/redis";
 import * as helper from "./lib/functions";
 
+
 const router = express.Router();
 
-
 export let test = router.all("/test", (req, res) => {
-   res.send({hello:"world"})
+    console.log("request")
+    helper.test().then(
+        (response)=>{
+            res.send({response: response});
+        }
+
+    ).catch(
+        (err)=>{
+            res.send(err);
+        }
+    )
+
 });
 
 export let login = router.all("/login", (req, res) => {
-    userLogin(pwd, user_name).then(
+
+    let name = req.body.name
+    let pwd = req.body.pwd
+
+    helper.userLogin(pwd, name).then(
         (user)=>{
             res.send({
                 status:200,
-                message:user
-            });
+                message:user            });
         }
     ).catch(
         (err)=>{
-            res.send({ status: 403, message: "User does not exist" });
+            if(err == "USER_DNE"){
+                res.send({ status: 403, message: "User does not exist" });
+            } else {
+                res.send({ status: 500, message: "Redis connection failed: " + err});
+            }
         }
     )
 });
 
-export let signup = router.all("/signup", (req, res) => {
-    userSignup(pwd, user_name).then(
+export let signup = router.post("/signup", (req, res) => {
+
+    let name = req.body.name;
+    let pwd = req.body.pwd;
+
+    helper.userSignup(pwd, name).then(
         (user)=>{
+            console.log("created user:");
+            console.log(user);
             res.send({
                 status:200,
                 message:user
@@ -37,12 +61,21 @@ export let signup = router.all("/signup", (req, res) => {
         }
     ).catch(
         (err)=>{
-            res.send({ status: 403, message: "User already exist" });
+            if(err =="USER_EXISTS"){
+                res.send({ status: 403, message: "USER_EXISTS" });
+            } else {
+                res.send({ status: 500, message: "Redis connection failed: " + err});
+
+
+            }
+
         }
     )
 });
 
 export let coins = router.all("/coins", (req, res) => {
+    let from = req.body.from_id
+    let to = req.body.to_id
     getCoins(from, to).then(
         (coins)=>{
             res.send({
@@ -54,7 +87,6 @@ export let coins = router.all("/coins", (req, res) => {
 });
 
 export let search = router.all("/search", (req, res) => {
-    let socket =
     searchCoin(start, end).then(
         (coins)=>{
             res.send({
@@ -66,8 +98,10 @@ export let search = router.all("/search", (req, res) => {
 });
 
 export let subscribe = router.all("/subscribe", (req, res) => {
-    let socket = req.io.
-    subscribeCoin(user, coin_id).then(
+    let user_id = req.body.user_id
+    let coin_id = req.body.coin_id
+
+    subscribeCoin(user_id, coin_id).then(
         ()=>{
             res.send({
                 status:200,
@@ -78,6 +112,9 @@ export let subscribe = router.all("/subscribe", (req, res) => {
 });
 
 export let unsubscribe = router.all("/unsubscribe", (req, res) => {
+    let user_id = req.body.user_id
+    let coin_id = req.body.coin_id
+
     unsubscribeCoin(user, coin_id).then(
         ()=>{
             res.send({

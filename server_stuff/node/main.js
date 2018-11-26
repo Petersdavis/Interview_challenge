@@ -2,52 +2,43 @@
 "use strict";
 
 import express from "express";
-import bodyParser from "body-parser";
 import path from "path";
 import env from "node-env-file";
 import { client } from "./lib/redis";
 import * as routes from "./routes.js";
-var cors = require('cors');
+var bodyParser = require('body-parser')
 
 const app = express();
 var http = require('http').Server(app);
 // Middleware to parse request body
-app.use(
-    bodyParser.urlencoded({
-        extended: true
-    })
-);
 
-// Add headers
-app.use(function (req, res, next) {
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
-    // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+//app.use(multer());
 
-    // Request methods you wish to allow
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-    // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
-    res.setHeader('Access-Control-Allow-Credentials', true);
-
-    // Pass to next layer of middleware
-    next();
-});
-app.use(cors());
 
 var io = require('socket.io')(http);
 app.io = io;
+app.all('*',function(req,res,next)
+{
+    if (!req.get('Origin')) return next();
+
+    res.set('Access-Control-Allow-Origin','http://localhost:3000');
+    res.set('Access-Control-Allow-Methods','GET,POST');
+    res.set('Access-Control-Allow-Headers','X-Requested-With,Content-Type');
+
+    if ('OPTIONS' == req.method) return res.send(200);
+
+    next();
+});
 
 
 app.all("/subscribe", routes.subscribe);
 app.all("/unsubscribe", routes.unsubscribe);
 app.all("/search", routes.search);
 app.all("/login", routes.login);
-app.all("/signup", routes.signup);
+app.post("/signup", routes.signup);
 app.all("/coins", routes.coins);
 app.all("/message", routes.message);
 app.all("/rmmessage", routes.rmmessage);
@@ -83,7 +74,7 @@ client().then(
                                 socket.emit(channel, message);
                             })
 
-                            channel = "coin." + msg.id +".subscribers"
+                            channel = "coin." + msg.id +".subs"
                             redis.subscribe(channel);
                             redis.on("message", (channel, message)=>{
                                 console.log("redis publication:" + message+ " to channel" +channel)
@@ -95,7 +86,7 @@ client().then(
                             channel = "coin." + msg.id
                             redis.unsubscribe(channel);
 
-                            channel = "coin." + msg.id +".subscribers"
+                            channel = "coin." + msg.id +".subs"
                             redis.unsubscribe(channel);
                             break;
                     }
