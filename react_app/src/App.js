@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import Login from './Pages/Login';
 import Dashboard from './Pages/Dashboard';
+import { API } from './api';
+import {subscribeCoin, unsubscribeCoin, login, logout} from './sockets';
 
 import './css/bootstrap.min.css';
 import './css/bootstrap-theme.min.css';
@@ -14,6 +16,7 @@ class App extends Component {
         this.sendMessage = this.sendMessage.bind(this);
 
         this.state = {
+            timestamp: 'no timestamp yet',
             user:{
               user_id:1,
               user_name:"Peter",
@@ -32,7 +35,6 @@ class App extends Component {
                 }
             ]
         };
-
     }
 
     login(username, password){
@@ -83,6 +85,11 @@ class App extends Component {
 
 
     render(){
+
+        return (
+            <div>{this.state.timestamp}</div>
+        );
+
         if(this.state.user.user_id===0){
           return (
               <Login
