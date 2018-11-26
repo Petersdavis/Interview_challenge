@@ -135,7 +135,7 @@ export let getUserName = (id, client)=>{
 export let getCoin = (id, client)=>{
     return new Promise(
         (resolve)=> {
-            client.get("coin." + id, (err, coin)=>{
+            client.get("coin." + id, (err, string)=>{
                 client.smembers("coin."+id+".subscribers", (err, subs)=>{
                     var promises = [];
                     subs.forEach(
@@ -144,6 +144,7 @@ export let getCoin = (id, client)=>{
                     });
                     Promise.all(promises).then(
                         (subscribers)=>{
+                            var coin = JSON.parse(string);
                             coin.subs = subscribers;
                             resolve(coin);
                         }
@@ -227,8 +228,20 @@ export let subscribeCoin = (user_id, coin_id) => {
                         reject("Subscription Already Exists");
                     } else {
                         client.sadd("coin."+coin_id +".subscribers", user_id, (err, result)=>{
-                            client.publish("coin."+coin_id+".subs", "ADD:" + user_id);
-                            resolve()
+
+                            getUserName(user_id, client).then(
+                                (user_name)=>{
+                                    client.publish("coin."+coin_id+".subs", "ADD:" + user_id + ":" + user_name);
+                                    getCoin(coin_id, client).then(
+                                        (coin)=>{
+                                            resolve(coin);
+                                        }
+                                    )
+                                }
+
+
+                            )
+
                         })
                     }
                 })
