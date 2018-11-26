@@ -7,7 +7,7 @@ import { client } from "../lib/redis";
 export let test = ()=>{
     return new Promise(
         (resolve,reject)=>{
-          resolve(saveMessage({to_id:1, from_id:0, msg:"HELLO WORLD"}))
+          resolve(saveMessage({to_id:1, from_id:0, msg:"HELLO WORLD"}));
         }
     );
 }
@@ -19,9 +19,9 @@ export let getMsgId = (id, client)=>{
                resolve(JSON.parse(string));
            })
         }
-    )
+    );
 
-}
+};
 
 export let getMsgArray=(ids, client)=>{
     return new Promise(
@@ -29,9 +29,9 @@ export let getMsgArray=(ids, client)=>{
             var promises = [];
             ids.forEach(
                 (id)=>{
-                    promises.push(getMsgId(id, client))
+                    promises.push(getMsgId(id, client));
                 }
-            )
+            );
             Promise.all(promises).then(
                 (values)=>{
                     resolve(values);
@@ -39,7 +39,7 @@ export let getMsgArray=(ids, client)=>{
             )
         }
     )
-}
+};
 
 
 export let userLogin = (pwd, user_name)=>{
@@ -67,7 +67,12 @@ export let userLogin = (pwd, user_name)=>{
 
                                                 client.smembers("user."+id+".subs", function(err, subs) {
                                                     user.subs = subs;
-                                                    resolve(user);
+                                                    getCoinArray(subs, client).then(
+                                                        (my_coins)=>{
+                                                            user.my_coins = my_coins;
+                                                            resolve(user);
+                                                        }
+                                                    )
                                                 })
                                             }
                                         );
@@ -84,7 +89,7 @@ export let userLogin = (pwd, user_name)=>{
             )
         }
     );
-}
+};
 
 
 export let userSignup = (pwd, user_name)=>{
@@ -93,7 +98,6 @@ export let userSignup = (pwd, user_name)=>{
             client().then(
                 client=>{
                     client.exists("user." + user_name, (err, exists) =>{
-
                         if(exists){
                             reject("USER_EXISTS")
                         } else {
@@ -103,8 +107,8 @@ export let userSignup = (pwd, user_name)=>{
                                 let hash = passwordHash.generate(pwd);
                                 client.set("user." + user_name, id)
                                 client.set("user." + id + ".password", hash);
+                                client.set("user." + id + ".username", user_name);
                                 resolve({name: user_name, id: id});
-
                             });
                         }
                     })
@@ -116,23 +120,66 @@ export let userSignup = (pwd, user_name)=>{
             )
         }
     );
-}
+};
+
+export let getUserName = (id, client)=>{
+    return new Promise(
+        (resolve)=> {
+            client.get("user."+id+".username", (err, username)=>{
+                resolve(username);
+            });
+        }
+    );
+};
+
 export let getCoin = (id, client)=>{
     return new Promise(
         (resolve)=> {
-           client.get("coin." + id, (err, coin)=>{
-               resolve(coin);
-           })
+            client.get("coin." + id, (err, coin)=>{
+                client.smembers("coin."+id+".subscribers", (err, subs)=>{
+                    var promises = [];
+                    subs.forEach(
+                        (sub)=>{
+                        promises.push(getUserName(sub, client));
+                    });
+                    Promise.all(promises).then(
+                        (subscribers)=>{
+                            coin.subs = subscribers;
+                            resolve(coin);
+                        }
+                    );
+                })
+            })
         }
     )
-}
+};
+
+export let getCoinArray = (ids, client)=>{
+    return new Promise(
+        (resolve)=> {
+            var promises = [];
+
+            ids.forEach(
+                (id)=>{
+                    promises.push(getCoin(id, client));
+                }
+            );
+
+            Promise.all(promises).then(
+                (values)=>{
+                    resolve(values);
+                }
+            )
+        }
+    )
+};
 
 export let getCoins = (from, to)=>{
     return new Promise(
         (resolve,reject)=>{
             client().then(
                 client=>{
-                    var promises = []
+                    var promises = [];
                     for(;from <= to;++from){
                       promises.push( getCoin(from, client))
                     }
@@ -153,7 +200,7 @@ export let getCoins = (from, to)=>{
             )
         }
     );
-}
+};
 
 /*** TODO: ***/
 export let searchCoin = (from, to)=>{
@@ -169,27 +216,32 @@ export let searchCoin = (from, to)=>{
             )
         }
     );
-}
+};
 
 export let subscribeCoin = (user_id, coin_id) => {
     return new Promise((resolve, reject) => {
         client().then(
             res => {
                 client.sadd("user."+user_id +".subs", coin_id, (err, result)=>{
-                    if(result==0){
+                    if(result===0){
                         reject("Subscription Already Exists");
                     } else {
-                        client.publish("coin."+coin_id+".subs", "ADD:" + user_id);
-                        resolve()
+                        client.sadd("coin."+coin_id +".subscribers", user_id, (err, result)=>{
+                            client.publish("coin."+coin_id+".subs", "ADD:" + user_id);
+                            resolve()
+                        })
                     }
                 })
+
+
+
             },
             err => {
                 reject("Redis connection failed: " + err);
             }
         );
     });
-}
+};
 
 export let unsubscribeCoin = (user_id, coin_id)=>{
     return new Promise(
@@ -197,11 +249,13 @@ export let unsubscribeCoin = (user_id, coin_id)=>{
             client().then(
                 client=>{
                     client.srem("user."+user_id +".subs", coin_id, (err, result)=>{
-                        if(result==0){
+                        if(result===0){
                             reject("Subscription Did Not Exists");
                         } else {
-                            client.publish("coin."+coin_id+".subs", "RM:" + user_id);
-                            resolve()
+                            client.srem("coin."+coin_id +".subscribers", coin_id, (err, result)=>{
+                                client.publish("coin."+coin_id+".subs", "RM:" + user_id);
+                                resolve()
+                            })
                         }
                     })
                 }

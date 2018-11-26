@@ -14,13 +14,11 @@ export let test = router.all("/test", (req, res) => {
         (response)=>{
             res.send({response: response});
         }
-
     ).catch(
         (err)=>{
             res.send(err);
         }
     )
-
 });
 
 export let login = router.all("/login", (req, res) => {
@@ -32,7 +30,8 @@ export let login = router.all("/login", (req, res) => {
         (user)=>{
             res.send({
                 status:200,
-                message:user            });
+                message:user
+            });
         }
     ).catch(
         (err)=>{
