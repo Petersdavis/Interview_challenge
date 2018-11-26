@@ -20,7 +20,7 @@
     width: 90%; }
   .login button {
     margin: 5px;
-    padding: 10px;
+    padding: 5px;
     border: 1px solid darkgray;
     border-radius: 10px;
     background-color: rgba(25, 25, 25, 0.7);
@@ -28,3 +28,14 @@
     font-weight: bold;
     font-size: 2em;
     width: 100%; }
+
+.modal .btn-danger {
+  margin: 5px;
+  padding: 5px;
+  border: 1px solid darkgray;
+  border-radius: 10px;
+  background-color: rgba(25, 25, 25, 0.7);
+  color: white;
+  font-weight: bold;
+  font-size: 1.3em;
+  width: 100%; }

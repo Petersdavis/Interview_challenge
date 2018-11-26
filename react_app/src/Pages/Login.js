@@ -42,26 +42,47 @@ class Login extends Component{
 
     login(){
         this.setState({login_error:""});
+        var  user = {name:this.state.username, pwd: this.state.password}
 
-        var username = this.state.username;
-        var password = this.state.password;
-        this.props.login(username, password).catch(
+        if(!user.name.length || !user.pwd.length){
+            this.setState({login_error:"Invalid username/password combination"});
+            return;
+        }
+
+        if(user.name.indexOf(".")!=-1 || user.name.indexOf(":")!= -1){
+            this.setState({login_error:"Username cannot contain '.' or ':' characters"});
+            return;
+        }
+
+        this.props.login(user).catch(
             (error)=>{
-                this.setState({login_error:error.msg});
+                this.setState({login_error:error});
             }
         )
     }
 
     dispatchRegistration(){
         this.setState({registration_error:""});
+        var  user = {name:this.state.new_username, pwd: this.state.new_password}
+        if(!user.name.length || !user.pwd.length){
+            this.setState({registration_error:"Invalid username/password combination"});
+            return;
+        }
 
-        var username = this.state.new_username;
-        var password = this.state.new_password
+        if(user.name.indexOf(".")!=-1 || user.name.indexOf(":")!= -1){
+            this.setState({registration_error:"Username cannot contain '.' or ':' characters"});
+            return;
+        }
 
-        this.setState({new_password:"", new_username:"", registration_active:false})
-        this.props.dispatchRegistration(username, password).catch(
+
+
+        this.props.signup(user).then(
+            ()=>{
+                this.setState({new_password:"", new_username:"", registration_active:false})
+            }
+        ).catch(
             (error)=>{
-                this.setState({registration_error:error.msg});
+                this.setState({registration_error:error});
             }
         )
     }

@@ -1,7 +1,7 @@
+import React, {Component} from 'react';
 
-
-class API {
-    login(user) {
+class API extends Component {
+    static login(user) {
         return new Promise(
             (resolve, reject) => {
                 fetch("http://0.0.0.0:80/login", {
@@ -19,7 +19,7 @@ class API {
         );
     }
 
-    signup(user) {
+    static signup(user) {
         return new Promise(
             (resolve, reject) => {
                 fetch("http://0.0.0.0:80/signup", {
@@ -37,7 +37,7 @@ class API {
         );
     }
 
-    coins(from, to) {
+    static coins(from, to) {
         return new Promise(
             (resolve, reject) => {
                 var data={from_id:from, to_id:to};
@@ -56,7 +56,7 @@ class API {
         );
     }
 
-    search(search) {
+    static search(search) {
         return new Promise(
             (resolve, reject) => {
                 fetch("http://0.0.0.0:80/search", {
@@ -74,7 +74,7 @@ class API {
         );
     }
 
-    subscribe(who, what) {
+    static subscribe(who, what) {
         return new Promise(
             (resolve, reject) => {
                 let data = {user_id: who, coin_id: what};
@@ -94,7 +94,7 @@ class API {
         );
     }
 
-    unsubscribe(who, what) {
+    static unsubscribe(who, what) {
         return new Promise(
             (resolve, reject) => {
                 let data = {user_id: who, coin_id: what};
@@ -114,7 +114,7 @@ class API {
         );
     }
 
-    message(message) {
+    static message(message) {
         return new Promise(
             (resolve, reject) => {
                 fetch("http://0.0.0.0:80/message", {
@@ -130,9 +130,9 @@ class API {
                 )
             }
         );
-    }
+    };
 
-    rmmessage(message) {
+    static rmmessage(message) {
         return new Promise(
             (resolve, reject) => {
                 fetch("http://0.0.0.0:80/rmmessage", {
@@ -149,8 +149,6 @@ class API {
             }
         );
     }
-
-
 }
 
 export {API}
