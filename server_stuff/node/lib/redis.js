@@ -13,7 +13,8 @@ promise.promisifyAll(redis.Multi.prototype);
 
 export let client = () => {
     return new Promise((resolve, reject) => {
-        let connector = redis.createClient(REDIS_URL);
+        console.log("0.0.0.0:6379");
+        let connector = redis.createClient("redis://goubiq_redis");
 
         connector.on("error", () => {
             reject("Redis Connection failed");
