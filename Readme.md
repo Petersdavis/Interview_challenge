@@ -1,5 +1,13 @@
 #Peter Davis Interview for GoUbiq
 
+####################################
+####  Installation
+####################################
+1) Run /server_stuff/node/npm install 
+2) Run /server_stuff/docker-compose up
+3) Run /react_app/npm install
+4) Run /react_app/npm run start
+ 
 
 ####################################
 ####  UI Features
