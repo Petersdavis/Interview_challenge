@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Row, Col} from 'react-bootstrap';
-import Message from "./ChatBox/Message";
+import Message from "./Chatbox/Message";
 import NewMessage from "./ChatBox/NewMessage";
 
 
