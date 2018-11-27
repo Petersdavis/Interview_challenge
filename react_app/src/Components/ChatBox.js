@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Row, Col} from 'react-bootstrap';
 import Message from "./Chatbox/Message";
-import NewMessage from "./ChatBox/NewMessage";
+import NewMessage from "./Chatbox/NewMessage";
 
 
 class ChatBox extends Component{
