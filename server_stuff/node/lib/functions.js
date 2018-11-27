@@ -1,4 +1,3 @@
-//from: https://blog.manifold.co/building-a-chat-room-in-30-minutes-using-redis-socket-io-and-express-9e8e5a578675
 "use strict";
 var passwordHash = require('password-hash');
 
@@ -120,8 +119,8 @@ export let userSignup = (pwd, user_name)=>{
 export let getCoin = (id, client)=>{
     return new Promise(
         (resolve)=> {
-           client.get("coin." + id, (err, coin)=>{
-               resolve(coin);
+            client.get("coin." + id + ".json", (err, coin)=>{
+            resolve(coin);
            })
         }
     )
