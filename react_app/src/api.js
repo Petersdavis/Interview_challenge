@@ -49,8 +49,17 @@ class API extends Component {
                     }
                 }).then(
                     (res) => {
-                        resolve(res.json())
+                        res.json().then(
+                            (body)=>{
+                                resolve(body.message)
+                            }
+                        )
                     }
+                ).catch(
+                    (err)=>{
+                        reject(err);
+                    }
+
                 )
             }
         );
@@ -87,7 +96,17 @@ class API extends Component {
                     }
                 }).then(
                     (res) => {
-                        resolve(res.json())
+                        res.json().then(
+                            (body)=>{
+                                if(body.status==200){
+                                    resolve(body.message);
+                                }else{
+                                    reject(body.message);
+
+                                }
+
+                            }
+                        )
                     }
                 )
             }
@@ -107,7 +126,17 @@ class API extends Component {
                     }
                 }).then(
                     (res) => {
-                        resolve(res.json())
+                        res.json().then(
+                            (body)=>{
+                                if(body.status==200){
+                                    resolve(body.message);
+                                }else{
+                                    reject(body.message);
+
+                                }
+
+                            }
+                        )
                     }
                 )
             }
@@ -115,17 +144,29 @@ class API extends Component {
     }
 
     static message(message) {
+       var object={message:message}
+
         return new Promise(
             (resolve, reject) => {
                 fetch("http://0.0.0.0:80/message", {
                     method: "POST",
-                    body: JSON.stringify(message),
+                    body: JSON.stringify(object),
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
                     }
                 }).then(
                     (res) => {
-                        resolve(res.json())
+                        res.json().then(
+                            (body)=>{
+                                if(body.status==200){
+                                    resolve(body.message);
+                                }else{
+                                    reject(body.message);
+
+                                }
+
+                            }
+                        )
                     }
                 )
             }
@@ -133,11 +174,12 @@ class API extends Component {
     };
 
     static rmmessage(message) {
+        var object={id:message}
         return new Promise(
             (resolve, reject) => {
                 fetch("http://0.0.0.0:80/rmmessage", {
                     method: "POST",
-                    body: JSON.stringify(message),
+                    body: JSON.stringify(object),
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
                     }

@@ -7,6 +7,7 @@ import env from "node-env-file";
 import { client } from "./lib/redis";
 import * as routes from "./routes.js";
 var bodyParser = require('body-parser')
+require('events').EventEmitter.prototype._maxListeners = 100;
 
 const app = express();
 var http = require('http').Server(app);
@@ -44,10 +45,13 @@ app.all("/message", routes.message);
 app.all("/rmmessage", routes.rmmessage);
 app.all("/test", routes.test);
 
-
+var allClients = [];
 client().then(
     redis => {
         io.on('connection', (socket) => {
+            allClients.push(socket);
+
+            socket.setMaxListeners(300);
             console.log(socket.id)
             socket.on('message', (message)=>{
                     console.log("message"+message);
@@ -91,6 +95,13 @@ client().then(
                             break;
                     }
             })
+
+            socket.on('disconnect', function() {
+                console.log('Got disconnect!');
+
+                var i = allClients.indexOf(socket);
+                allClients.splice(i, 1);
+            });
         });
     }).catch(
     (err)=>{

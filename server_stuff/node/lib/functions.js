@@ -25,17 +25,22 @@ export let getMsgId = (id, client)=>{
 export let getMsgArray=(ids, client)=>{
     return new Promise(
         (resolve,reject)=>{
-            var promises = [];
-            ids.forEach(
-                (id)=>{
-                    promises.push(getMsgId(id, client));
-                }
-            );
-            Promise.all(promises).then(
-                (values)=>{
-                    resolve(values);
-                }
-            )
+            if(ids !== null && ids.length > 0) {
+                var promises = [];
+                ids.forEach(
+                    (id) => {
+                        promises.push(getMsgId(id, client));
+                    }
+                );
+                Promise.all(promises).then(
+                    (values) => {
+                        resolve(values);
+                    }
+                )
+            } else {
+                resolve([]);
+            }
+
         }
     )
 };
@@ -157,19 +162,26 @@ export let getCoin = (id, client)=>{
 export let getCoinArray = (ids, client)=>{
     return new Promise(
         (resolve)=> {
-            var promises = [];
+            if(ids!==null && ids.length>0){
 
-            ids.forEach(
-                (id)=>{
-                    promises.push(getCoin(id, client));
-                }
-            );
+                var promises = [];
 
-            Promise.all(promises).then(
-                (values)=>{
-                    resolve(values);
-                }
-            )
+                ids.forEach(
+                    (id)=>{
+                        promises.push(getCoin(id, client));
+                    }
+                );
+
+                Promise.all(promises).then(
+                    (values)=>{
+                        resolve(values);
+                    }
+                )
+            }else{
+                resolve([])
+
+            }
+
         }
     )
 };
@@ -221,7 +233,7 @@ export let searchCoin = (from, to)=>{
 export let subscribeCoin = (user_id, coin_id) => {
     return new Promise((resolve, reject) => {
         client().then(
-            res => {
+            client => {
                 client.sadd("user."+user_id +".subs", coin_id, (err, result)=>{
                     if(result===0){
                         reject("Subscription Already Exists");
@@ -287,12 +299,18 @@ export let saveMessage = (message)=>{
             client().then(
              client=>{
                  client.incr("message_count", (err, id)=>{
-                     message.id = id;
-                     var message_string = JSON.stringify(message);
-                     client.set("message." + id, message_string )
-                     client.publish("user."+message.to_id, message_string);
-                     client.sadd("user."+message.to_id+".inbox", id);
-                     resolve();
+                     client.get("user."+message.to, (err, to_id)=>{
+                         message.id = id;
+
+                         var message_string = JSON.stringify(message);
+                         client.set("message." + id, message_string )
+                         client.publish("user."+to_id, message_string);
+
+                         console.log("MESSAGE STORED TO INBOX: user."+message.to_id+".inbox");
+                         client.sadd("user."+message.to_id+".inbox", id);
+                         resolve();
+                     })
+
                  })
              }
             ).catch(
@@ -304,11 +322,11 @@ export let saveMessage = (message)=>{
     );
 };
 
-export let deleteMessage = (message) => {
+export let deleteMessage = (id) => {
    return new Promise((resolve, reject)=>{
       client().then(
           client=>{
-              client.srem("user." + message.to_id + ".inbox", message.id)
+              client.srem("user." + message.to_id + ".inbox", id)
               resolve();
           }
       ).catch(err=>{

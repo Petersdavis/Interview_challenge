@@ -17,18 +17,18 @@ class ChatBox extends Component{
     componentDidMount() {
     }
 
-
-
-
-
     render(){
-
         let messages = [];
-
+        let seen_msg = {}
+        var key = 0;
         this.props.messages.forEach((msg)=>{
-            messages.push(
-                <Message message = {msg} dismissMessage = {this.props.dismissMessage} />
-            )
+            if(seen_msg[msg.id] === undefined){
+                messages.push(
+                    <Message key={++key} message={msg} dismissMessage = {this.props.dismissMessage} />
+                )
+                seen_msg[msg.id] = true;
+            }
+
 
         })
 

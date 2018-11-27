@@ -63,5 +63,97 @@
     bottom:0;
   }
 
+  .coin-container{
+    top:88px;
+    padding-left:15px;
+    padding-right:15px;
+    position:absolute;
+
+    left:0;
+    right:0;
+    bottom:35px;
+    overflow-y:scroll;
+    overflow-x:hidden;
+
+  }
+
+  .coin{
+    color:#323232;
+    border:1px solid white;
+    border-radius:10px;
+    padding:4px;
+    width:100%;
+    margin:5px;
+    background:rgba(200,200,200,.5);
+
+    .coin-header{
+      border-bottom:1px solid white;
+      background:rgba(200,200,200, 0.5);
+      margin:-4px;
+      border-radius:10px 10px 0 0;
+      padding:15px;
+      font-weight:bold;
+      font-size:1.2em;
+    }
+    .coin-body{
+      font-size:1em;
+      padding:10px;
+    }
+
+    .coin-label{
+      font-weight:bold;
+      display:inline-block;
+
+      @media screen and (max-width: 600px) {
+        width: 35%;
+      }
+
+      @media screen and (min-width: 601px) {
+        width: 18%;
+      }
+    }
+
+    .coin-text{
+      font-weight:bold;
+      display:inline-block;
+
+      @media screen and (max-width: 600px) {
+        width: 60%;
+      }
+
+      @media screen and (min-width: 601px) {
+        width: 30%;
+      }
+    }
+
+  }
+
+  .coin-header-actions{
+    float:right;
+    display:inline;
+    span{
+      padding:5px;
+    }
+  }
+
+  .subscribers-popup{
+    min-width:300px;
+    border-radius:10px;
+    right:75px;
+    position:absolute;
+    background:white;
+
+    .subscriber-header{
+      margin:10px;
+    }
+
+
+    button{
+      margin:5%;
+      padding:5px;
+      width:90%;
+    }
+  }
+
 
 }

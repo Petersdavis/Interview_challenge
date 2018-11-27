@@ -75,7 +75,7 @@ export let signup = router.post("/signup", (req, res) => {
 export let coins = router.all("/coins", (req, res) => {
     let from = req.body.from_id
     let to = req.body.to_id
-    getCoins(from, to).then(
+    helper.getCoins(from, to).then(
         (coins)=>{
             res.send({
                 status:200,
@@ -86,7 +86,7 @@ export let coins = router.all("/coins", (req, res) => {
 });
 
 export let search = router.all("/search", (req, res) => {
-    searchCoin(start, end).then(
+    helper.searchCoin(start, end).then(
         (coins)=>{
             res.send({
                 status:200,
@@ -100,13 +100,18 @@ export let subscribe = router.all("/subscribe", (req, res) => {
     let user_id = req.body.user_id
     let coin_id = req.body.coin_id
 
-    subscribeCoin(user_id, coin_id).then(
-        ()=>{
+    helper.subscribeCoin(user_id, coin_id).then(
+        (coin)=>{
             res.send({
                 status:200,
-                message:"subscribed"
+                message:coin
             });
         }
+    ).catch(
+        (err)=>{
+            res.send({ status: 403, message: "SUB_EXISTS" });
+        }
+
     )
 });
 
@@ -114,7 +119,7 @@ export let unsubscribe = router.all("/unsubscribe", (req, res) => {
     let user_id = req.body.user_id
     let coin_id = req.body.coin_id
 
-    unsubscribeCoin(user, coin_id).then(
+    helper.unsubscribeCoin(user_id, coin_id).then(
         ()=>{
             res.send({
                 status:200,
@@ -126,7 +131,8 @@ export let unsubscribe = router.all("/unsubscribe", (req, res) => {
 
 export let message = router.all("/message", (req, res) => {
     let message = req.body.message
-    saveMessage(message).then(
+    console.log(message);
+    helper.saveMessage(message).then(
         (msg)=>{
             res.send({
                 status:200,
@@ -141,8 +147,8 @@ export let message = router.all("/message", (req, res) => {
 });
 
 export let rmmessage = router.all("/rmmessage", (req, res) => {
-    let message = req.body.message
-    deleteMessage(message).then(
+    let message = req.body.id
+    helper.deleteMessage(message).then(
         ()=>{
             res.send({
                 status:200,

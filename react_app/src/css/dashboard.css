@@ -47,3 +47,67 @@
     position: absolute;
     width: 100%;
     bottom: 0; }
+  .dashboard .coin-container {
+    top: 88px;
+    padding-left: 15px;
+    padding-right: 15px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 35px;
+    overflow-y: scroll;
+    overflow-x: hidden; }
+  .dashboard .coin {
+    color: #323232;
+    border: 1px solid white;
+    border-radius: 10px;
+    padding: 4px;
+    width: 100%;
+    margin: 5px;
+    background: rgba(200, 200, 200, 0.5); }
+    .dashboard .coin .coin-header {
+      border-bottom: 1px solid white;
+      background: rgba(200, 200, 200, 0.5);
+      margin: -4px;
+      border-radius: 10px 10px 0 0;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 1.2em; }
+    .dashboard .coin .coin-body {
+      font-size: 1em;
+      padding: 10px; }
+    .dashboard .coin .coin-label {
+      font-weight: bold;
+      display: inline-block; }
+      @media screen and (max-width: 600px) {
+        .dashboard .coin .coin-label {
+          width: 35%; } }
+      @media screen and (min-width: 601px) {
+        .dashboard .coin .coin-label {
+          width: 18%; } }
+    .dashboard .coin .coin-text {
+      font-weight: bold;
+      display: inline-block; }
+      @media screen and (max-width: 600px) {
+        .dashboard .coin .coin-text {
+          width: 60%; } }
+      @media screen and (min-width: 601px) {
+        .dashboard .coin .coin-text {
+          width: 30%; } }
+  .dashboard .coin-header-actions {
+    float: right;
+    display: inline; }
+    .dashboard .coin-header-actions span {
+      padding: 5px; }
+  .dashboard .subscribers-popup {
+    min-width: 300px;
+    border-radius: 10px;
+    right: 75px;
+    position: absolute;
+    background: white; }
+    .dashboard .subscribers-popup .subscriber-header {
+      margin: 10px; }
+    .dashboard .subscribers-popup button {
+      margin: 5%;
+      padding: 5px;
+      width: 90%; }

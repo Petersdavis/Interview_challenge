@@ -20,6 +20,8 @@ class App extends Component {
         this.dismissMessage = this.dismissMessage.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.getCoins = this.getCoins.bind(this);
+        this.subscribeToCoin = this.subscribeToCoin.bind(this);
+        this.unsubscribeToCoin = this.unsubscribeToCoin.bind(this);
 
         this.state = {
             timestamp: 'no timestamp yet',
@@ -27,24 +29,27 @@ class App extends Component {
               user_id:0,
               user_name:"Guest",
             },
-            subscriptions:[],
             my_coins:[],
             coins:[],
-            messages:[            ]
+            messages:[],
+            api_request_in_progress:false
         };
     }
+    componentDidMount(){
+        this.getCoins(1,20);
+    }
 
-    sendAdminMessage(msg){
+    sendAdminMessage(msg ,timeout){
         var messages = this.state.messages;
+        let id = Math.floor(Math.random()*(-10000))
         messages.push(
             {
-                from:{
-                    user_name:"ADMIN",
-                    user_id: 0
-                },
+                from:"ADMIN",
+                to:this.state.user.user_name,
                 msg: msg,
-                expires: -1,
-                priority: "success"
+                expires: timeout,
+                priority: "success",
+                id:id
 
             }
         )
@@ -62,9 +67,9 @@ class App extends Component {
                             var data = res.message;
                             this.setState({user: {user_id: data.id, user_name: data.name}});
                             this.setState({my_coins: []});
-                            this.sendAdminMessage("Welcome to the Crypt-Toe-Verse! ")
+                            this.sendAdminMessage("Welcome to the Crypt-Toe-Verse! ", -1)
 
-                            subscribeUser(user.id, this.receiveMessage);
+                            subscribeUser(data.id, this.receiveMessage);
                             resolve();
                         } else {
                             reject(res.message);
@@ -81,13 +86,15 @@ class App extends Component {
                 API.login(user).then(
                     (res)=>{
                         if(res.status == 200){
+
                             var data = res.message;
                             this.setState({user:{user_id:data.id, user_name:data.name}});
                             this.setState({messages:data.messages});
                             this.setState({my_coins:data.my_coins});
+                            this.setState({subs:data.subs});
 
-                            subscribeUser(user.id, this.receiveMessage);
-                            user.subs.forEach(
+                            subscribeUser(data.id, this.receiveMessage);
+                            data.subs.forEach(
                                 (sub)=>{
                                     subscribeCoin(sub, this.coinUpdate, this.coinSubscriber);
                                 }
@@ -117,7 +124,7 @@ class App extends Component {
             case "ADD":
                 if(my_coins.some(
                     (coin)=>{
-                        if(coin.coin_id === coin_id){
+                        if(coin.coin_id == coin_id){
                             var new_sub = {id:message[1], name:message[2]}
                             coin.subs.push(message[1])
                             return true;
@@ -134,7 +141,7 @@ class App extends Component {
             case "RM":
                 if(my_coins.some(
                         (coin)=>{
-                            if(coin.coin_id === coin_id){
+                            if(coin.coin_id == coin_id){
                                 coin.subs = coin.subs.filter(
                                     (sub)=>{
                                         return sub.id !== message[1];
@@ -157,7 +164,7 @@ class App extends Component {
         var coin_object = JSON.parse(message);
         if(my_coins.some(
             coin=>{
-                if(coin.id === coin_id){
+                if(coin.id == coin_id){
                     coin = Object.assign(coin, coin_object)
                     return true;
                 }
@@ -189,43 +196,50 @@ class App extends Component {
     dismissMessage(msg_id){
         /**Get UserID & Token Then send dismiss message to API */
         let messages = this.state.messages;
+        messages.forEach((msg)=>{
+            if(msg.id == msg_id){
+                msg.expires = 0;
 
-        let message_to_delete = messages.filter(
-            (msg)=>{
-                return msg.id === msg_id
+                if(msg.from !== "ADMIN"){
+                    API.rmmessage(msg);
+                }
+
             }
-        );
-        console.log(message_to_delete);
+        });
 
-        if(message_to_delete.length === 0){
-            console.error("COULD NOT FIND MESSAGE");
-            return;
-        }
-
-        messages = messages.filter(
-            (msg)=>{
-                return msg.id !== msg_id
-            }
-        );
         this.setState({messages:messages});
-        if(message_to_delete[0].from.user_id !== 0){
-            API.rmmessage(message_to_delete[0]);
-        }
     }
 
     sendMessage(msg){
-
+        return new Promise((resolve,reject)=>{
+            msg.from = this.state.user.user_name;
+            msg.expires = 150;
+            msg.priority = "";
+            API.message(msg).then(
+                ()=>{ this.sendAdminMessage("Message Sent", 40);}
+            ).catch(
+                err=>{
+                    this.sendAdminMessage("Error Sending Message", 40);
+                }
+            );
+        });
     }
 
     getCoins(from, to){
+        if(this.state.api_request_in_progress){
+            return;
+        }
+
+        this.setState({api_request_in_progress:true})
+
         API.coins(from, to).then(
             coins => {
+                var current_coins = this.state.coins
                 coins.forEach(coin =>{
-                    var current_coins = this.state.coins
                     var exists = false;
-                    current_coins = current_coins.map(
+                    current_coins.map(
                     (cc) => {
-                        if(cc.id = coin.id){
+                        if(cc.id == coin.id){
                             cc = Object.assign(cc, coin)
                             exists = true;
                         }
@@ -233,18 +247,76 @@ class App extends Component {
                     if(!exists){
                         current_coins.push(coin);
                     }
-
-                    this.setState({coins:current_coins})
                 })
-        })
+                this.setState({coins:current_coins})
+                this.setState({api_request_in_progress:false})
+
+        }).catch(
+            (err)=>{
+                this.setState({api_request_in_progress:false})
+            }
+
+        )
     }
 
-    subscribeToCoin(id){
+    subscribeToCoin(coin_id){
+        if(this.state.api_request_in_progress){
+            return;
+        }
 
+        this.setState({api_request_in_progress:true})
+
+        API.subscribe(this.state.user.user_id, coin_id).then(
+            fresh_coin => {
+                var my_coins = this.state.my_coins;
+                my_coins.push(fresh_coin);
+                this.setState({my_coins:my_coins})
+                this.setState({api_request_in_progress:false})
+
+
+                setTimeout(
+                    ()=>{
+                        subscribeCoin(coin_id, this.coinUpdate, this.coinSubscriber);
+                    }, 100
+                )
+
+            }).catch(
+            (err)=>{
+                this.setState({api_request_in_progress:false})
+            }
+
+        )
     }
 
-    unsubscribeToCoin(id){
+    unsubscribeToCoin(coin_id){
+        if(this.state.api_request_in_progress){
+            return;
+        }
 
+        this.setState({api_request_in_progress:true})
+
+        API.unsubscribe(this.state.user.user_id, coin_id).then(
+            () => {
+                var my_coins = this.state.my_coins;
+                my_coins = my_coins.filter(
+                    (coin)=>{
+                        return coin.id !== coin_id;
+                    }
+                );
+                this.setState({my_coins:my_coins})
+                this.setState({api_request_in_progress:false})
+
+                setTimeout(
+                    ()=>{
+                        unsubscribeCoin(coin_id);
+                    }, 100
+                )
+
+            }).catch(
+            (err)=>{
+                this.setState({api_request_in_progress:false})
+            }
+        )
     }
 
     render(){
@@ -257,21 +329,20 @@ class App extends Component {
               />
           )
         } else {
-           if(this.state.coins.length === 0){
-               this.getCoins(1,20);
-           }
-
-
 
           return (
               <Dashboard
                   user = {this.state.user}
-                  subscriptions = {this.state.subscriptions}
                   coins = {this.state.coins}
+                  my_coins = {this.state.my_coins}
                   messages = {this.state.messages}
 
+                  subscribe = {this.subscribeToCoin}
+                  unsubscribe = {this.unsubscribeToCoin}
+                  sendMessage = {this.sendMessage}
                   logout = {this.logout}
                   dismissMessage = {this.dismissMessage}
+                  getCoins = {this.getCoins}
               />
           )
         }

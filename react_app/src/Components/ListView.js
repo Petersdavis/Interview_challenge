@@ -2,14 +2,9 @@ import React, {Component} from 'react';
 import {Row, Col} from 'react-bootstrap';
 
 
-import "../css/dashboard.css";
-
-
 class ListView extends Component{
     constructor(props) {
         super(props);
-
-
         this.state = {
 
         }
@@ -19,16 +14,13 @@ class ListView extends Component{
     componentDidMount() {
     }
 
-
-
-
-
     render(){
-
 
         return(
             <div className = "list-view">
-
+                <Row>
+                    {this.props.children}
+                </Row>
             </div>
         )
 
