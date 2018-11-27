@@ -20,17 +20,17 @@ services:
 #      MYSQL_USER: dbuser
 #      MYSQL_PASSWORD: 123
 #    ports:
-#      - "5282:3306"
-
+#      - '5282:3306'
+#
 #  goubiq_php:
 #    container_name: goubiq_php
-#    build: ./
+#    build: ./php/
 #    volumes:
 #      - ./php/:/var/www/html/
 #    ports:
-#      - "8000:8000"
-#      - "8080:8080"
-#
+#      - '8000:8000'
+#      - '8080:8080'
+
   goubiq_python:
     container_name: goubiq_python
     build: ./python/
@@ -42,12 +42,14 @@ services:
     volumes:
      - ./python/:/mnt/src
 
-  goubiq_node:
-      image: peter/node
-      container_name: goubiq_node
-      ports:
-       - "8080:8080"
-      build: ./node/
-      entrypoint: nodemon --watch ./ -e js,html  app.js
-      volumes:
-       - ./node/:/mnt/src
+
+#  goubiq_node:
+#      image: peter/node
+#      container_name: goubiq_node
+#      ports:
+#       - '8080:8080'
+#       - '80:80'
+#      build: ./node/
+#      entrypoint: nodemon --watch ./ -e js,html  app.js
+#      volumes:
+#       - ./node/:/mnt/src
