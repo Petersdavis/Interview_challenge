@@ -22,7 +22,7 @@ class ChatBox extends Component{
         let seen_msg = {}
         var key = 0;
         this.props.messages.forEach((msg)=>{
-            if(seen_msg[msg.id] === undefined){
+            if(seen_msg[msg.id] === undefined && msg.dismissed === undefined ){
                 messages.push(
                     <Message key={++key} message={msg} dismissMessage = {this.props.dismissMessage} />
                 )

@@ -198,7 +198,7 @@ class App extends Component {
         let messages = this.state.messages;
         messages.forEach((msg)=>{
             if(msg.id == msg_id){
-                msg.expires = 0;
+                msg.dismissed = true;
 
                 if(msg.from !== "ADMIN"){
                     API.rmmessage(msg);
