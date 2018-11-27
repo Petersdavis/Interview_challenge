@@ -7,7 +7,6 @@ services:
     ports:
       - "6379:6379"
 
-
 #  goubiq_mysql:
 #    container_name: goubiq_mysql
 #    image: mysql:5
@@ -40,8 +39,20 @@ services:
       - python
       - poll.py
     volumes:
-     - ./python/:/mnt/src
+      - ./python/:/mnt/src
+    ports:
+      - '8081:8081'
 
+  goubiq_node:
+      image: peter/node
+      container_name: goubiq_node
+      ports:
+       - '8080:8080'
+       - '80:80'
+      build: ./node/
+      entrypoint: nodemon --watch ./ -e js,html  app.js
+      volumes:
+       - ./node/:/mnt/src
 
 #  goubiq_node:
 #      image: peter/node
@@ -53,3 +64,4 @@ services:
 #      entrypoint: nodemon --watch ./ -e js,html  app.js
 #      volumes:
 #       - ./node/:/mnt/src
+
