@@ -119,12 +119,14 @@ class App extends Component {
 
     coinSubscriber(error, message, coin_id){
         message = message.split(":")
+        var coin_name = "";
         var my_coins = this.state.my_coins;
         switch (message[0]){
             case "ADD":
                 if(my_coins.some(
                     (coin)=>{
                         if(coin.coin_id == coin_id){
+                            coin_name = coin.name;
                             var new_sub = {id:message[1], name:message[2]}
                             coin.subs.push(message[1])
                             return true;
@@ -133,6 +135,7 @@ class App extends Component {
                     }
                 )){
                     this.setState({my_coins: my_coins})
+                    this.sendAdminMessage(message[2] + "has just subscribed to "+ coin_name, 50)
                 } else {
                     console.log("ERROR: COULD NOT FIND COIN SUBSCRIPTION")
                 }

@@ -16,7 +16,8 @@ var http = require('http').Server(app);
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-//app.use(multer());
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 
 var io = require('socket.io')(http);
@@ -39,11 +40,16 @@ app.all("/subscribe", routes.subscribe);
 app.all("/unsubscribe", routes.unsubscribe);
 app.all("/search", routes.search);
 app.all("/login", routes.login);
-app.post("/signup", routes.signup);
+app.all("/signup", routes.signup);
 app.all("/coins", routes.coins);
 app.all("/message", routes.message);
 app.all("/rmmessage", routes.rmmessage);
 app.all("/test", routes.test);
+
+// Handles any requests that don't match the ones above
+app.get('*', (req,res) =>{
+    res.sendFile(path.join(__dirname+'/client/build/index.html'));
+});
 
 var allClients = [];
 client().then(

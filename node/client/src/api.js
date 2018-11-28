@@ -4,7 +4,7 @@ class API extends Component {
     static login(user) {
         return new Promise(
             (resolve, reject) => {
-                fetch("http://0.0.0.0:80/login", {
+                fetch("/login", {
                     method: "POST",
                     body: JSON.stringify(user),
                     headers: {
@@ -22,7 +22,7 @@ class API extends Component {
     static signup(user) {
         return new Promise(
             (resolve, reject) => {
-                fetch("http://0.0.0.0:80/signup", {
+                fetch("/signup", {
                     method: "POST",
                     body: JSON.stringify(user),
                     headers: {
@@ -41,7 +41,7 @@ class API extends Component {
         return new Promise(
             (resolve, reject) => {
                 var data={from_id:from, to_id:to};
-                fetch("http://0.0.0.0:80/coins", {
+                fetch("/coins", {
                     method: "POST",
                     body: JSON.stringify(data),
                     headers: {
@@ -68,7 +68,7 @@ class API extends Component {
     static search(search) {
         return new Promise(
             (resolve, reject) => {
-                fetch("http://0.0.0.0:80/search", {
+                fetch("/search", {
                     method: "POST",
                     body: JSON.stringify(search),
                     headers: {
@@ -88,7 +88,7 @@ class API extends Component {
             (resolve, reject) => {
                 let data = {user_id: who, coin_id: what};
 
-                fetch("http://0.0.0.0:80/subscribe", {
+                fetch("/subscribe", {
                     method: "POST",
                     body: JSON.stringify(data),
                     headers: {
@@ -118,7 +118,7 @@ class API extends Component {
             (resolve, reject) => {
                 let data = {user_id: who, coin_id: what};
 
-                fetch("http://0.0.0.0:80/unsubscribe", {
+                fetch("/unsubscribe", {
                     method: "POST",
                     body: JSON.stringify(data),
                     headers: {
@@ -148,7 +148,7 @@ class API extends Component {
 
         return new Promise(
             (resolve, reject) => {
-                fetch("http://0.0.0.0:80/message", {
+                fetch("/message", {
                     method: "POST",
                     body: JSON.stringify(object),
                     headers: {
@@ -177,7 +177,7 @@ class API extends Component {
         var object={id:message}
         return new Promise(
             (resolve, reject) => {
-                fetch("http://0.0.0.0:80/rmmessage", {
+                fetch("/rmmessage", {
                     method: "POST",
                     body: JSON.stringify(object),
                     headers: {
