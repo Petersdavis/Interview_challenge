@@ -1,86 +1,66 @@
 #Peter Davis Interview for GoUbiq
 
+####################################
+####  Installation
+####################################
+1) Run /server_stuff/node/npm install 
+2) Run /server_stuff/docker-compose up
+3) Run /react_app/npm install
+4) Run /react_app/npm run start
+ 
 
 ####################################
-####  UI Features
+#### Architecture
 ####################################
 
-1. Pages (Login, Dashboard)
-2. Components (
-    i) Listview
-        -lazyloaded
-    ii) SearchBar
-    iii) ChatBox
-    iv) Alerts
-
-####################################
-#### Server Side Features
-####################################
-
-1. Websockets
-    -Each Client Gets a Connection
-    -Messages are sent over the connection
-        {   
-            code:"0"
-            msg:"",
-            from:{
-                id:##
-                name:""
-            }
-        }
-    -Coins are sent over the connection if the user is subscribed
-        {
-            code:"1"
-            id:##
-            price:##
-            timestamp:###
-        } 
-    -New/Canceled subscriptions to coins are sent over the connection if the user is subscribed
-        {
-            code:"2"
-            id:##
-            name:""
-        }  
         
-2.Rest API
-    User Access:
-    -Create User 
-    -Login
-    -Token Login
+1.Docker-compose includes 3 servers
+  PYTHON ===>  Redis  <===> Node.js  <====>  React.js
+                                      -Http 
+                                      -Sockets 
+                                      -RestApi 
     
-    Coins:
-    Get Coin ##-##
-    Get Coin Array [##, ##, ##]
-        
-    Message
-    Send Message
+    a) Python
+    Python is used to poll the coin API at a regular interval.
+    Python container stores data about coins in a Redis database and publishes any updates to coins.
     
+    b) Redis is used as a message broker, and as a fast persistant storage for coins and users.
     
+    c) Node.js server handles serving static files, socket connections, and a Rest Api
     
-2. Database for coin prices
-3. Database for messages
-4. CoinMarketCap API
-    API Limit 30 / minute
-    Endpoints update every 5 minutes
-    We will set coin data for a chunk to be fresh for 15 minutes
-    If a visible or subscribed coin expires on a client machine the machine will request new data    
+    d) React to render UI and manage application state
     
-
-5. Google Sign-in 
 
 ####################################
-#### Server->Client Communications
+#### Accomplishments
 ####################################
 
-1. Coin Update
-2. New Message
-3. New Subscriber 
+1)  It gets and stores coin data from CoinMarketCap API
+2)  Implemented a lazy loading coin fetcher 
+3)  Most views render well at all screen resolutions (some strings are a little long).
+4)  Implemented a search bar so that user can filter results.  With lazy loader it is a slow hacky way to search all coins. 
+5)  The user can subscribe to specific coins updates
+6)  The user receives notifications of updates to these coins immediately
+7)  When someone subscribes to a coin, everyone else who is already subscribed to it also
+    get notified about the subscriber (new subscriber joined message);
+8)  A user subscribed to a coin can send direct message to other users subscribed to that coin.
+9)  A system is in place to store offline messages (but it still needs debugging something wrong with redis .sadd() and .smembers() method) 
+
 
 ####################################
-#### Client->Server Communications
-####################################
+#### Shortcomings
+#################################### 
+ 
+ 1) Got carried away on the UI
+ 2) Did not use test driven development methodology
+ 3) Did not implement google sign-in
+ 4) Did not implement message hints based on most messaged users
+ 5) Did not implement UI to communicate changes in coin prices
+ 
+ 
 
-1. Get All Coins
-2. Open Socket
-3. Get unread messages
-4. Get subscribers to coin
+####################################
+#### Challenges
+#################################### 
+ 
+ 1) Really live data is challenging when API is rate limited and returns chunks of 100 sequential coins.
